@@ -3,12 +3,13 @@ from tkinter import messagebox
 
 academic_unit_members = []
 
-
 class Person:
-    def __init__(self, id, password):
+    def __init__(self, id, password, is_authenticated=None, is_active=None, valid_attempts=None):
         self.id = id
         self.password = password
-        self.is_authenticated = False
+        self.is_authenticated = is_authenticated if is_authenticated is not None else False
+        self.is_active = is_active if is_active is not None else True
+        self.valid_attempts = valid_attempts if valid_attempts is not None else 3
         academic_unit_members.append(self)
 
     def authenticate(self, entered_password):
@@ -18,27 +19,46 @@ class Person:
         return False
 
 class Teacher(Person):
-    def __init__(self, user_id, password, name, subject):
-        super().__init__(user_id, password)
+    def __init__(self, user_id, password, name, subject, is_authenticated=None, is_active=None, valid_attempts=None):
+        super().__init__(user_id, password, is_authenticated, is_active, valid_attempts)
         self.name = name
         self.subject = subject
+        self.type = "Teacher"
+
+    def to_dict(self):
+        base_dict = super().to_dict()
+        base_dict.update({
+            'name': self.name,
+            'subject': self.subject,
+            'type': self.type
+        })
+        return base_dict
 
 class Student(Person):
-    def __init__(self, user_id, password, name, roll_no, birthday):
-        super().__init__(user_id, password)
+    def __init__(self, user_id, password, name, roll_no, birthday,  is_authenticated, is_active, valid_attempts):
+        super().__init__(user_id, password, is_authenticated, is_active, valid_attempts)
         self.name = name
         self.roll_no = roll_no
         self.birthday = birthday
 
+    def to_dict(self):
+        base_dict = super().to_dict()
+        base_dict.update({
+            'name': self.name,
+            'roll_no': self.roll_no,
+            'birthday': self.birthday
+        })
+        return base_dict
+    
 class UG_student(Student):
-    def __init__(self, user_id, password, name, roll_no, birthday):
-        super().__init__(user_id, password, name, roll_no, birthday)
-        self.type = "UG"
+    def __init__(self, user_id, password, name, roll_no, birthday, is_authenticated=None, is_active=None, valid_attempts=None):
+        super().__init__(user_id, password, name, roll_no, birthday, is_authenticated, is_active, valid_attempts)
+        self.type = "UG Student"
 
 class PG_student(Student):
-    def __init__(self, user_id, password, name, roll_no, birthday):
-        super().__init__(user_id, password, name, roll_no, birthday)
-        self.type = "PG"
+    def __init__(self, user_id, password, name, roll_no, birthday,is_authenticated=None, is_active=None, valid_attempts=None):
+        super().__init__(user_id, password, name, roll_no, birthday, is_authenticated, is_active, valid_attempts)
+        self.type = "PG Student"
 
 def password_validator(password):
     if not (8 <= len(password) <= 12):
@@ -67,6 +87,54 @@ def password_validator(password):
         return 504
 
     return True
+
+def load_data_from_file():
+    try:
+        with open("academic_data.txt", "r") as file:
+            data = file.readlines()
+            for line in data:
+                user_data = line.strip().split(',')
+                user_type, *attributes = user_data
+
+                if user_type.lower() == 'teacher':
+                    new_user = Teacher(**parse_attributes(attributes), is_authenticated=False)
+                elif user_type.lower() == 'ug student':
+                    new_user = UG_student(**parse_attributes(attributes))
+                elif user_type.lower() == 'pg student':
+                    new_user = PG_student(**parse_attributes(attributes), is_authenticated=False)
+                else:
+                    print(f"Invalid user type: {user_type}")
+
+    except FileNotFoundError:
+        print("No data file found. Starting with an empty list.")
+
+
+def parse_attributes(attributes):
+    parsed_attributes = {}
+    for attr in attributes:
+        key_value = list(map(str.strip, attr.split(':')))
+        key, value = key_value[0], key_value[1] if len(key_value) > 1 else ""
+        parsed_attributes[key] = value
+
+    return parsed_attributes
+
+def save_data_to_file():
+    with open('academic_data.txt', 'w') as file:
+        for member in academic_unit_members:
+            if isinstance(member, Teacher):
+                user_type = 'Teacher'
+            elif isinstance(member, UG_student):
+                user_type = 'UG Student'
+            elif isinstance(member, PG_student):
+                user_type = 'PG Student'
+            else:
+                continue
+
+            common_fields = [f'{user_type},user_id:{member.id},password:{member.password},name:{member.name}']
+            additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name']]
+
+            user_data = ','.join(common_fields + additional_fields)
+            file.write(user_data + '\n')
 
 class UserRegistrationGUI(Frame):
     def __init__(self, master, switch_gui):
@@ -121,14 +189,16 @@ class UserRegistrationGUI(Frame):
                 return
 
         if user_type.lower() == 'teacher':
-            new_user = Teacher(user_id, password, "", "")
+            new_user = Teacher(user_id, password, "", "", False, True, 3)
         elif user_type.lower() == 'ug':
-            new_user = UG_student(user_id, password, "", "", "")
+            new_user = UG_student(user_id, password, "", "", "", False, True, 3)
         elif user_type.lower() == 'pg':
-            new_user = PG_student(user_id, password, "", "", "")
+            new_user = PG_student(user_id, password, "", "", "", False, True, 3)
         else:
             messagebox.showerror("Error", "Invalid user type.")
             return
+        
+        save_data_to_file()
 
         messagebox.showinfo("Registration", "User registered successfully!")
         if user_type.lower() == 'teacher':
@@ -173,22 +243,32 @@ class SignInGUI(Frame):
 
         for member in academic_unit_members:
             if member.id == user_id:
-                if member.is_authenticated:
-                    messagebox.showinfo("Sign In", "User is already authenticated.")
-                else:
-                    if member.authenticate(password):
-                        messagebox.showinfo("Sign In", "Authentication successful!")
-                        GUI_type = get_profile_edit_class(member)
-                        if GUI_type == "Teacher":
-                            self.switch_gui(TeacherProfileEditGUI, member)
-                        elif GUI_type == "UGStudent":
-                            self.switch_gui(UGStudentProfileEditGUI, member)
-                        if GUI_type == "PGStudent":
-                            self.switch_gui(PGStudentProfileEditGUI, member)
+                if member.is_active:
+                    if member.is_authenticated:
+                        messagebox.showinfo("Sign In", "User is already authenticated.")
                     else:
-                        messagebox.showerror("Sign In", "Authentication failed. Invalid password.")
-                return
-
+                        if member.authenticate(password):
+                            messagebox.showinfo("Sign In", "Authentication successful!")
+                            GUI_type = get_profile_edit_class(member)
+                            if GUI_type == "Teacher":
+                                self.switch_gui(TeacherProfileEditGUI, member)
+                            elif GUI_type == "UGStudent":
+                                self.switch_gui(UGStudentProfileEditGUI, member)
+                            if GUI_type == "PGStudent":
+                                self.switch_gui(PGStudentProfileEditGUI, member)
+                        else:
+                            member.valid_attempts -= 1
+                            if member.valid_attempts > 1:
+                                messagebox.showerror("Sign In", f"Invalid password. {member.valid_attempts} attempts remaining.")
+                            elif member.valid_attempts == 1:
+                                messagebox.showerror("Sign In", f"Invalid password. {member.valid_attempts} attempt remaining.")
+                            else:
+                                member.is_active = False
+                                messagebox.showerror("Sign In", "User account deactivated due to too many incorrect password attempts.")
+                    return
+                else:
+                    messagebox.showerror("Sign In", "User account deactivated due to too many incorrect password attempts.")
+                    return
         messagebox.showerror("Sign In", "User not found.")
 
 def get_profile_edit_class(user):
@@ -217,6 +297,7 @@ class TeacherProfileEditGUI(Frame):
 
         self.button_update = Button(self, text="Update", command=self.update_profile)
         self.button_logout = Button(self, text="Log Out", command=self.logout)
+        self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
         self.label_user_id.pack()
         self.entry_user_id.pack()
@@ -226,8 +307,8 @@ class TeacherProfileEditGUI(Frame):
         self.entry_subject.pack()
         self.button_update.pack()
         self.button_logout.pack()
+        self.button_deregister.pack()
 
-        # Initialize fields with user data
         self.entry_user_id.insert(0, teacher.id)
         self.entry_name.insert(0, teacher.name)
         self.entry_subject.insert(0, teacher.subject)
@@ -248,8 +329,18 @@ class TeacherProfileEditGUI(Frame):
         messagebox.showerror("Profile Update", "User not found or not a teacher.")
 
     def logout(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, Teacher):
+                member.is_authenticated = False
+                break
         self.switch_gui(WelcomeGUI)
 
+    def deregister(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, Teacher):
+                academic_unit_members.remove(member)
+                messagebox.showinfo("Deregister", "Account deregistered successfully.")
+                self.switch_gui(SignInGUI)
 
 class UGStudentProfileEditGUI(Frame):
     def __init__(self, master, switch_gui, ug_student):
@@ -270,8 +361,8 @@ class UGStudentProfileEditGUI(Frame):
         self.entry_birthday = Entry(self)
 
         self.button_update = Button(self, text="Update", command=self.update_profile)
-
         self.button_logout = Button(self, text="Log Out", command=self.logout)
+        self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
         self.label_user_id.pack()
         self.entry_user_id.pack()
@@ -283,6 +374,7 @@ class UGStudentProfileEditGUI(Frame):
         self.entry_birthday.pack()
         self.button_update.pack()
         self.button_logout.pack()
+        self.button_deregister.pack()
 
         self.entry_user_id.insert(0, ug_student.id)
         self.entry_name.insert(0, ug_student.name)
@@ -307,7 +399,18 @@ class UGStudentProfileEditGUI(Frame):
         messagebox.showerror("Profile Update", "User not found or not an UG student.")
 
     def logout(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, UG_student):
+                member.is_authenticated = False
+                break
         self.switch_gui(WelcomeGUI)
+
+    def deregister(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, UG_student):
+                academic_unit_members.remove(member)
+                messagebox.showinfo("Deregister", "Account deregistered successfully.")
+                self.switch_gui(SignInGUI)
 
 class PGStudentProfileEditGUI(Frame):
     def __init__(self, master, switch_gui, pg_student):
@@ -328,8 +431,8 @@ class PGStudentProfileEditGUI(Frame):
         self.entry_birthday = Entry(self)
 
         self.button_update = Button(self, text="Update", command=self.update_profile)
-
         self.button_logout = Button(self, text="Log out", command=self.logout)
+        self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
         self.label_user_id.pack()
         self.entry_user_id.pack()
@@ -341,6 +444,7 @@ class PGStudentProfileEditGUI(Frame):
         self.entry_birthday.pack()
         self.button_update.pack()
         self.button_logout.pack()
+        self.button_deregister.pack()
 
         self.entry_user_id.insert(0, pg_student.id)
         self.entry_name.insert(0, pg_student.name)
@@ -365,7 +469,18 @@ class PGStudentProfileEditGUI(Frame):
         messagebox.showerror("Profile Update", "User not found or not a PG student.")
 
     def logout(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, PG_student):
+                member.is_authenticated = False
+                break
         self.switch_gui(WelcomeGUI)
+
+    def deregister(self):
+        for member in academic_unit_members:
+            if member.id == self.entry_user_id.get() and isinstance(member, PG_student):
+                academic_unit_members.remove(member)
+                messagebox.showinfo("Deregister", "Account deregistered successfully.")
+                self.switch_gui(SignInGUI)
 
 class WelcomeGUI(Frame):
     def __init__(self, master, switch_gui):
@@ -391,11 +506,19 @@ class WelcomeGUI(Frame):
     def register(self):
         self.switch_gui(UserRegistrationGUI)
 
+def on_exit():
+    save_data_to_file()
+    app.destroy()
+
 class MainApplication(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.title("Academic Unit System")
+
+        self.protocol("WM_DELETE_WINDOW", on_exit)
+
+        load_data_from_file()
 
         self.current_frame = None
 
