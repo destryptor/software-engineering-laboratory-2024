@@ -131,7 +131,7 @@ def save_data_to_file():
                 continue
 
             common_fields = [f'{user_type},user_id:{member.id},password:{member.password},name:{member.name}']
-            additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name']]
+            additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name', 'is_authenticated']]
 
             user_data = ','.join(common_fields + additional_fields)
             file.write(user_data + '\n')
@@ -248,6 +248,7 @@ class SignInGUI(Frame):
                         messagebox.showinfo("Sign In", "User is already authenticated.")
                     else:
                         if member.authenticate(password):
+                            member.is_authenticated = True
                             messagebox.showinfo("Sign In", "Authentication successful!")
                             GUI_type = get_profile_edit_class(member)
                             if GUI_type == "Teacher":
