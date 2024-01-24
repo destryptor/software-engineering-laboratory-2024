@@ -91,9 +91,12 @@ def password_validator(password):
 def load_data_from_file():
     try:
         with open("academic_data.txt", "r") as file:
-            data = file.readlines()
-            for line in data:
-                user_data = line.strip().split(',')
+            data = file.read().split('\n\n')  # Split data into chunks based on extra line
+            for chunk in data:
+                if not chunk.strip():
+                    continue  # Skip empty chunks
+
+                user_data = chunk.strip().split('\n')
                 user_type, *attributes = user_data
 
                 if user_type.lower() == 'teacher':
@@ -107,7 +110,6 @@ def load_data_from_file():
 
     except FileNotFoundError:
         print("No data file found. Starting with an empty list.")
-
 
 def parse_attributes(attributes):
     parsed_attributes = {}
@@ -130,11 +132,11 @@ def save_data_to_file():
             else:
                 continue
 
-            common_fields = [f'{user_type},user_id:{member.id},password:{member.password},name:{member.name}']
+            common_fields = [f'{user_type}', f'user_id:{member.id}', f'password:{member.password}', f'name:{member.name}']
             additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name', 'is_authenticated']]
 
-            user_data = ','.join(common_fields + additional_fields)
-            file.write(user_data + '\n')
+            user_data = '\n'.join(common_fields + additional_fields)
+            file.write(user_data + '\n\n')
 
 class UserRegistrationGUI(Frame):
     def __init__(self, master, switch_gui):
@@ -150,7 +152,13 @@ class UserRegistrationGUI(Frame):
 
         self.entry_user_id = Entry(self)
         self.entry_password = Entry(self, show="*")
-        self.entry_user_type = Entry(self)
+        self.user_type_var = StringVar()
+        self.user_type_var.set("")
+
+        self.teacher_radio = Radiobutton(self, text="Teacher", variable=self.user_type_var, value="teacher")
+        self.ug_radio = Radiobutton(self, text="UG Student", variable=self.user_type_var, value="ug")
+        self.pg_radio = Radiobutton(self, text="PG Student", variable=self.user_type_var, value="pg")
+
 
         self.button_register = Button(self, text="Register", command=self.register_user)
         self.button_switch_to_sign_in = Button(self, text="Switch to Login", command=self.switch_to_sign_in)
@@ -160,7 +168,9 @@ class UserRegistrationGUI(Frame):
         self.label_password.pack()
         self.entry_password.pack()
         self.label_user_type.pack()
-        self.entry_user_type.pack()
+        self.teacher_radio.pack()
+        self.ug_radio.pack()
+        self.pg_radio.pack()
         self.button_register.pack()
         self.button_switch_to_sign_in.pack()
 
@@ -170,7 +180,7 @@ class UserRegistrationGUI(Frame):
     def register_user(self):
         user_id = self.entry_user_id.get()
         password = self.entry_password.get()
-        user_type = self.entry_user_type.get()
+        user_type = self.user_type_var.get()
 
         validation_result = password_validator(password)
 
