@@ -3,6 +3,10 @@ from tkinter import messagebox
 
 academic_unit_members = []
 
+class StyledFrame(Frame):
+    def __init__(self, master, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+
 class Person:
     def __init__(self, id, password, is_authenticated=None, is_active=None, valid_attempts=None):
         self.id = id
@@ -59,6 +63,16 @@ class PG_student(Student):
     def __init__(self, user_id, password, name, roll_no, birthday,is_authenticated=None, is_active=None, valid_attempts=None):
         super().__init__(user_id, password, name, roll_no, birthday, is_authenticated, is_active, valid_attempts)
         self.type = "PG Student"
+
+def email_validator(email):
+    if '@' not in email:
+        return False
+    if email.count('@') > 1:
+        return False
+    if '.' not in email.split('@')[1]:
+        return False
+    return True
+
 
 def password_validator(password):
     if not (8 <= len(password) <= 12):
@@ -138,7 +152,7 @@ def save_data_to_file():
             user_data = '\n'.join(common_fields + additional_fields)
             file.write(user_data + '\n\n')
 
-class UserRegistrationGUI(Frame):
+class UserRegistrationGUI(StyledFrame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -146,7 +160,7 @@ class UserRegistrationGUI(Frame):
 
         self.switch_gui = switch_gui
 
-        self.label_user_id = Label(self, text="User ID:")
+        self.label_user_id = Label(self, text="User ID (Must be your current active email):")
         self.label_password = Label(self, text="Password:")
         self.label_user_type = Label(self, text="User Type:")
 
@@ -163,16 +177,16 @@ class UserRegistrationGUI(Frame):
         self.button_register = Button(self, text="Register", command=self.register_user)
         self.button_switch_to_sign_in = Button(self, text="Switch to Login", command=self.switch_to_sign_in)
 
-        self.label_user_id.pack()
-        self.entry_user_id.pack()
-        self.label_password.pack()
-        self.entry_password.pack()
-        self.label_user_type.pack()
-        self.teacher_radio.pack()
-        self.ug_radio.pack()
-        self.pg_radio.pack()
-        self.button_register.pack()
-        self.button_switch_to_sign_in.pack()
+        self.label_user_id.pack(pady=5)
+        self.entry_user_id.pack(pady=5)
+        self.label_password.pack(pady=5)
+        self.entry_password.pack(pady=5)
+        self.label_user_type.pack(pady=5)
+        self.teacher_radio.pack(pady=2)
+        self.ug_radio.pack(pady=2)
+        self.pg_radio.pack(pady=2)
+        self.button_register.pack(pady=10)
+        self.button_switch_to_sign_in.pack(pady=5)
 
     def switch_to_sign_in(self):
         self.switch_gui(SignInGUI)
@@ -182,7 +196,11 @@ class UserRegistrationGUI(Frame):
         password = self.entry_password.get()
         user_type = self.user_type_var.get()
 
+        email_validation = email_validator(user_id)
         validation_result = password_validator(password)
+
+        if email_validation is not True:
+            messagebox.showerror("Error", "Username should be a valid email.")
 
         if validation_result is not True:
             if validation_result == 501:
@@ -219,7 +237,7 @@ class UserRegistrationGUI(Frame):
             self.switch_gui(PGStudentProfileEditGUI, new_user)
 
 
-class SignInGUI(Frame):
+class SignInGUI(StyledFrame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -237,12 +255,12 @@ class SignInGUI(Frame):
 
         self.button_register = Button(self, text="Register", command=self.switch_to_register)
 
-        self.label_user_id.pack()
-        self.entry_user_id.pack()
-        self.label_password.pack()
-        self.entry_password.pack()
-        self.button_sign_in.pack()
-        self.button_register.pack()
+        self.label_user_id.pack(pady=5)
+        self.entry_user_id.pack(pady=5)
+        self.label_password.pack(pady=5)
+        self.entry_password.pack(pady=5)
+        self.button_sign_in.pack(pady=10)
+        self.button_register.pack(pady=5)
 
     def switch_to_register(self):
         self.switch_gui(UserRegistrationGUI)
@@ -290,7 +308,7 @@ def get_profile_edit_class(user):
     elif isinstance(user, PG_student):
         return "PGStudent"
 
-class TeacherProfileEditGUI(Frame):
+class TeacherProfileEditGUI(StyledFrame):
     def __init__(self, master, switch_gui, teacher):
         super().__init__(master)
         self.master = master
@@ -310,15 +328,15 @@ class TeacherProfileEditGUI(Frame):
         self.button_logout = Button(self, text="Log Out", command=self.logout)
         self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
-        self.label_user_id.pack()
-        self.entry_user_id.pack()
-        self.label_name.pack()
-        self.entry_name.pack()
-        self.label_subject.pack()
-        self.entry_subject.pack()
-        self.button_update.pack()
-        self.button_logout.pack()
-        self.button_deregister.pack()
+        self.label_user_id.pack(pady=5)
+        self.entry_user_id.pack(pady=5)
+        self.label_name.pack(pady=5)
+        self.entry_name.pack(pady=5)
+        self.label_subject.pack(pady=5)
+        self.entry_subject.pack(pady=5)
+        self.button_update.pack(pady=10)
+        self.button_logout.pack(pady=5)
+        self.button_deregister.pack(pady=5)
 
         self.entry_user_id.insert(0, teacher.id)
         self.entry_name.insert(0, teacher.name)
@@ -353,7 +371,7 @@ class TeacherProfileEditGUI(Frame):
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class UGStudentProfileEditGUI(Frame):
+class UGStudentProfileEditGUI(StyledFrame):
     def __init__(self, master, switch_gui, ug_student):
         super().__init__(master)
         self.master = master
@@ -375,17 +393,17 @@ class UGStudentProfileEditGUI(Frame):
         self.button_logout = Button(self, text="Log Out", command=self.logout)
         self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
-        self.label_user_id.pack()
-        self.entry_user_id.pack()
-        self.label_name.pack()
-        self.entry_name.pack()
-        self.label_roll_no.pack()
-        self.entry_roll_no.pack()
-        self.label_birthday.pack()
-        self.entry_birthday.pack()
-        self.button_update.pack()
-        self.button_logout.pack()
-        self.button_deregister.pack()
+        self.label_user_id.pack(pady=5)
+        self.entry_user_id.pack(pady=5)
+        self.label_name.pack(pady=5)
+        self.entry_name.pack(pady=5)
+        self.label_roll_no.pack(pady=5)
+        self.entry_roll_no.pack(pady=5)
+        self.label_birthday.pack(pady=5)
+        self.entry_birthday.pack(pady=5)
+        self.button_update.pack(pady=10)
+        self.button_logout.pack(pady=5)
+        self.button_deregister.pack(pady=5)
 
         self.entry_user_id.insert(0, ug_student.id)
         self.entry_name.insert(0, ug_student.name)
@@ -423,7 +441,7 @@ class UGStudentProfileEditGUI(Frame):
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class PGStudentProfileEditGUI(Frame):
+class PGStudentProfileEditGUI(StyledFrame):
     def __init__(self, master, switch_gui, pg_student):
         super().__init__(master)
         self.master = master
@@ -445,17 +463,17 @@ class PGStudentProfileEditGUI(Frame):
         self.button_logout = Button(self, text="Log out", command=self.logout)
         self.button_deregister = Button(self, text="Deregister your account", command=self.deregister)
 
-        self.label_user_id.pack()
-        self.entry_user_id.pack()
-        self.label_name.pack()
-        self.entry_name.pack()
-        self.label_roll_no.pack()
-        self.entry_roll_no.pack()
-        self.label_birthday.pack()
-        self.entry_birthday.pack()
-        self.button_update.pack()
-        self.button_logout.pack()
-        self.button_deregister.pack()
+        self.label_user_id.pack(pady=5)
+        self.entry_user_id.pack(pady=5)
+        self.label_name.pack(pady=5)
+        self.entry_name.pack(pady=5)
+        self.label_roll_no.pack(pady=5)
+        self.entry_roll_no.pack(pady=5)
+        self.label_birthday.pack(pady=5)
+        self.entry_birthday.pack(pady=5)
+        self.button_update.pack(pady=10)
+        self.button_logout.pack(pady=5)
+        self.button_deregister.pack(pady=5)
 
         self.entry_user_id.insert(0, pg_student.id)
         self.entry_name.insert(0, pg_student.name)
@@ -493,7 +511,7 @@ class PGStudentProfileEditGUI(Frame):
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class WelcomeGUI(Frame):
+class WelcomeGUI(StyledFrame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -506,10 +524,10 @@ class WelcomeGUI(Frame):
         self.button_login = Button(self, text="Login", command=self.login)
         self.button_register = Button(self, text="Register", command=self.register)
 
-        self.label_welcome.pack()
-        self.label_select.pack()
-        self.button_login.pack()
-        self.button_register.pack()
+        self.label_welcome.pack(pady=10)
+        self.label_select.pack(pady=5)
+        self.button_login.pack(pady=5)
+        self.button_register.pack(pady=5)
 
     def login(self):
         self.switch_gui(SignInGUI)
