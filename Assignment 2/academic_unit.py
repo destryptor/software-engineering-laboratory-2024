@@ -3,10 +3,6 @@ from tkinter import messagebox
 
 academic_unit_members = []
 
-class StyledFrame(Frame):
-    def __init__(self, master, *args, **kwargs):
-        super().__init__(master, *args, **kwargs)
-
 class Person:
     def __init__(self, id, password, is_authenticated=None, is_active=None, valid_attempts=None):
         self.id = id
@@ -64,6 +60,12 @@ class PG_student(Student):
         super().__init__(user_id, password, name, roll_no, birthday, is_authenticated, is_active, valid_attempts)
         self.type = "PG Student"
 
+def unique_email(email):
+    for member in academic_unit_members:
+        if member.id == email:
+            return False
+    return True
+
 def email_validator(email):
     if '@' not in email:
         return False
@@ -105,20 +107,27 @@ def password_validator(password):
 def load_data_from_file():
     try:
         with open("academic_data.txt", "r") as file:
-            data = file.read().split('\n\n')  # Split data into chunks based on extra line
+            data = file.read().split('\n\n')
             for chunk in data:
                 if not chunk.strip():
-                    continue  # Skip empty chunks
+                    continue
 
                 user_data = chunk.strip().split('\n')
                 user_type, *attributes = user_data
 
+                attributes_dict = parse_attributes(attributes)
+                for key, value in attributes_dict.items():
+                    if value.lower() == 'true':
+                        attributes_dict[key] = True
+                    elif value.lower() == 'false':
+                        attributes_dict[key] = False
+
                 if user_type.lower() == 'teacher':
-                    new_user = Teacher(**parse_attributes(attributes), is_authenticated=False)
+                    new_user = Teacher(**attributes_dict, is_authenticated=False)
                 elif user_type.lower() == 'ug student':
-                    new_user = UG_student(**parse_attributes(attributes))
+                    new_user = UG_student(**attributes_dict, is_authenticated=False)
                 elif user_type.lower() == 'pg student':
-                    new_user = PG_student(**parse_attributes(attributes), is_authenticated=False)
+                    new_user = PG_student(**attributes_dict, is_authenticated=False)
                 else:
                     print(f"Invalid user type: {user_type}")
 
@@ -147,12 +156,12 @@ def save_data_to_file():
                 continue
 
             common_fields = [f'{user_type}', f'user_id:{member.id}', f'password:{member.password}', f'name:{member.name}']
-            additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name', 'is_authenticated']]
+            additional_fields = [f'{key}:{getattr(member, key)}' for key in member.__dict__.keys() if key not in ['type', 'id', 'password', 'name', 'is_authenticated', 'valid_attempts']]
 
             user_data = '\n'.join(common_fields + additional_fields)
             file.write(user_data + '\n\n')
 
-class UserRegistrationGUI(StyledFrame):
+class UserRegistrationGUI(Frame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -196,11 +205,17 @@ class UserRegistrationGUI(StyledFrame):
         password = self.entry_password.get()
         user_type = self.user_type_var.get()
 
+        unique = unique_email(user_id)
         email_validation = email_validator(user_id)
         validation_result = password_validator(password)
 
+        if unique is not True:
+            messagebox.showerror("Error", "Email ID already in use.")
+            return
+
         if email_validation is not True:
             messagebox.showerror("Error", "Username should be a valid email.")
+            return
 
         if validation_result is not True:
             if validation_result == 501:
@@ -237,7 +252,7 @@ class UserRegistrationGUI(StyledFrame):
             self.switch_gui(PGStudentProfileEditGUI, new_user)
 
 
-class SignInGUI(StyledFrame):
+class SignInGUI(Frame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -277,6 +292,7 @@ class SignInGUI(StyledFrame):
                     else:
                         if member.authenticate(password):
                             member.is_authenticated = True
+                            member.valid_attempts = 3
                             messagebox.showinfo("Sign In", "Authentication successful!")
                             GUI_type = get_profile_edit_class(member)
                             if GUI_type == "Teacher":
@@ -308,7 +324,7 @@ def get_profile_edit_class(user):
     elif isinstance(user, PG_student):
         return "PGStudent"
 
-class TeacherProfileEditGUI(StyledFrame):
+class TeacherProfileEditGUI(Frame):
     def __init__(self, master, switch_gui, teacher):
         super().__init__(master)
         self.master = master
@@ -371,7 +387,7 @@ class TeacherProfileEditGUI(StyledFrame):
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class UGStudentProfileEditGUI(StyledFrame):
+class UGStudentProfileEditGUI(Frame):
     def __init__(self, master, switch_gui, ug_student):
         super().__init__(master)
         self.master = master
@@ -438,10 +454,11 @@ class UGStudentProfileEditGUI(StyledFrame):
         for member in academic_unit_members:
             if member.id == self.entry_user_id.get() and isinstance(member, UG_student):
                 academic_unit_members.remove(member)
+                save_data_to_file()
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class PGStudentProfileEditGUI(StyledFrame):
+class PGStudentProfileEditGUI(Frame):
     def __init__(self, master, switch_gui, pg_student):
         super().__init__(master)
         self.master = master
@@ -511,7 +528,7 @@ class PGStudentProfileEditGUI(StyledFrame):
                 messagebox.showinfo("Deregister", "Account deregistered successfully.")
                 self.switch_gui(SignInGUI)
 
-class WelcomeGUI(StyledFrame):
+class WelcomeGUI(Frame):
     def __init__(self, master, switch_gui):
         super().__init__(master)
         self.master = master
@@ -566,5 +583,5 @@ class MainApplication(Tk):
 
 if __name__ == "__main__":
     app = MainApplication()
-    app.geometry("400x300")
+    app.geometry("600x500")
     app.mainloop()
