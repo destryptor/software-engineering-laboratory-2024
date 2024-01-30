@@ -9,7 +9,9 @@ public:
     VectorDataset(int numVectors);
     ~VectorDataset();
     int getDimension();
+    vector<DataVector> getSet();
     DataVector getVectorAtIndex(int index);
     void ReadDataset(string fileName);
-    VectorDataset knearestneighbor(VectorDataset set, DataVector a, int k);
+    VectorDataset knearestneighbor(DataVector a, int k);
+    void printDataset();
 };

@@ -1,7 +1,7 @@
 #include "DataVector.h"
 using namespace std;
 
-DataVector::DataVector(int dimension = 0)
+DataVector::DataVector(int dimension)
 {
     v.resize(dimension);
 }
@@ -22,7 +22,7 @@ DataVector &DataVector::operator=(const DataVector &other)
     return *this;
 }
 
-void DataVector::setDimension(int dimension = 0)
+void DataVector::setDimension(int dimension)
 {
     v.clear();
     v.resize(dimension);
