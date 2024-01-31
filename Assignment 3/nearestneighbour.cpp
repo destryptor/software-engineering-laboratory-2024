@@ -20,14 +20,7 @@ int main()
     int vectorSize = dataset.getDimension();
     DataVector testVector(vectorSize);
 
-#ifdef MANUALTESTVECTOR
-    cout << "Enter the test vector of dimension " << vectorSize << ": ";
-    vector<double> temp(vectorSize);
-    for (int i = 0; i < vectorSize; i++)
-        cin >> temp[i];
-    testVector.setVector(temp);
-#endif
-#ifndef ALLVECTORS
+#ifdef TESTMODE
     cout << "Enter the index of the vector in the dataset to be used as the test vector: ";
     int index;
     cin >> index;
@@ -39,17 +32,22 @@ int main()
     cin >> k;
 
     auto start = chrono::high_resolution_clock::now();
-#ifdef ALLVECTORS
-    for (DataVector vector : dataset.getSet())
+#ifndef TESTMODE
+    cout << "Running " << k << "-nearest neighbour algorithm on the dataset..." << endl;
+    for (int i = 0; i < 100; i++)
     {
-        dataset.knearestneighbor(vector, k);
+        testVector = dataset.getVectorAtIndex(i);
+        cout << "Calculating neighbours for " << (i + 1) << "th vector..." << endl;
+        VectorDataset result = dataset.knearestneighbor(testVector, k);
     }
 #endif
 
+#ifdef TESTMODE
     VectorDataset result = dataset.knearestneighbor(testVector, k);
+#endif
     auto stop = chrono::high_resolution_clock::now();
 
-#ifndef ALLVECTORS
+#ifdef TESTMODE
     cout << "The " << k << " nearest neighbors of the test vector are: " << endl;
     result.printDataset();
 #endif

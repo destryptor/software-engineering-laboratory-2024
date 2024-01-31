@@ -18,8 +18,13 @@ DataVector::DataVector(const DataVector &other)
 
 DataVector &DataVector::operator=(const DataVector &other)
 {
-    v = other.v;
-    return *this;
+    if (this != &other)
+    {
+        v = other.v;
+        return *this;
+    }
+    else
+        return *this;
 }
 
 void DataVector::setDimension(int dimension)
