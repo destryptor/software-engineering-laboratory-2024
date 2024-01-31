@@ -1,3 +1,6 @@
+// Name: Sharanya Chakraborty
+// Roll No.: 22CS10088
+
 #include <bits/stdc++.h>
 #include <chrono>
 #include "VectorDataset.h"
@@ -7,20 +10,20 @@ using namespace std;
 int main()
 {
 
-    string fileName;
+    string fileName; // Reading the dataset file's name
     cout << "Enter Dataset File Name: ";
     cin >> fileName;
-    int dataSize;
+    int dataSize; // Asking for the total number of vectors in the dataset
     cout << "Enter Dataset Size: ";
     cin >> dataSize;
 
     VectorDataset dataset(dataSize);
-    dataset.ReadDataset(fileName);
+    dataset.ReadDataset(fileName); // Reading the dataset from the file
 
     int vectorSize = dataset.getDimension();
-    DataVector testVector(vectorSize);
+    DataVector testVector(vectorSize); // Creating a vector to be used as the test vector
 
-#ifdef TESTMODE
+#ifdef TESTMODE // This mode allows users to test the algorithm on a single vector of their choice
     cout << "Enter the index of the vector in the dataset to be used as the test vector: ";
     int index;
     cin >> index;
@@ -28,11 +31,11 @@ int main()
 #endif
 
     int k;
-    cout << "Enter k: ";
+    cout << "Enter k: "; // Asking for the value of k (number of nearest neighbors)
     cin >> k;
 
     auto start = chrono::high_resolution_clock::now();
-#ifndef TESTMODE
+#ifndef TESTMODE // This mode runs the algorithm on the first 100 vectors of the dataset. 100 is because our professor told me to do so.
     cout << "Running " << k << "-nearest neighbour algorithm on the dataset..." << endl;
     for (int i = 0; i < 100; i++)
     {
@@ -54,7 +57,7 @@ int main()
 
     auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 
-    int ms = duration.count() % 1000;
+    int ms = duration.count() % 1000; // Formatting the time taken by the algorithm properly
     int s = (duration.count() / 1000) % 60;
     int m = (duration.count() / (1000 * 60)) % 60;
     int h = (duration.count() / (1000 * 60 * 60)) % 24;

@@ -1,3 +1,6 @@
+// Name: Sharanya Chakraborty
+// Roll No.: 22CS10088
+
 #include "VectorDataset.h"
 #include <chrono>
 using namespace std;
@@ -79,6 +82,7 @@ VectorDataset VectorDataset::knearestneighbor(DataVector a, int k)
 {
     VectorDataset result(k);
 
+    // Calculating the distance of the given vector from all the vectors in the dataset and storing them in a vector of pairs
     vector<pair<double, int>> distancesAndIndices;
 
     for (int i = 0; i < set.size(); ++i)
@@ -87,8 +91,10 @@ VectorDataset VectorDataset::knearestneighbor(DataVector a, int k)
         distancesAndIndices.push_back({distance, i});
     }
 
+    // Sorting the vector of pairs in ascending order of distance
     sort(distancesAndIndices.begin(), distancesAndIndices.end());
 
+    // Storing the k-nearest neighbors in the result vector
     for (int i = 0; i < k; ++i)
     {
         int index = distancesAndIndices[i].second;
