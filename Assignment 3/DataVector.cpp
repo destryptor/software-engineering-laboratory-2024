@@ -11,7 +11,7 @@ DataVector::DataVector(int dimension)
         exit(1);
     }
     v.resize(dimension);
-    for (int i = 0; i < dimension; i++)
+    for (int i = 0; i < dimension; i++) // Explicitly initializing the vector with 0s
     {
         v[i] = 0;
     }
@@ -47,7 +47,7 @@ void DataVector::setDimension(int dimension)
     }
     v.clear();
     v.resize(dimension);
-    for (int i = 0; i < dimension; i++)
+    for (int i = 0; i < dimension; i++) // Explicitly initializing the vector with 0s
     {
         v[i] = 0;
     }
