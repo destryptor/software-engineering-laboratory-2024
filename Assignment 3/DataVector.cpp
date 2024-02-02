@@ -5,7 +5,16 @@ using namespace std;
 
 DataVector::DataVector(int dimension)
 {
+    if (dimension < 0)
+    {
+        cout << "Dimension of vector cannot be negative." << endl;
+        exit(1);
+    }
     v.resize(dimension);
+    for (int i = 0; i < dimension; i++)
+    {
+        v[i] = 0;
+    }
 }
 
 DataVector::~DataVector()
@@ -31,8 +40,17 @@ DataVector &DataVector::operator=(const DataVector &other)
 
 void DataVector::setDimension(int dimension)
 {
+    if (dimension < 0)
+    {
+        cout << "Dimension of vector cannot be negative." << endl;
+        exit(1);
+    }
     v.clear();
     v.resize(dimension);
+    for (int i = 0; i < dimension; i++)
+    {
+        v[i] = 0;
+    }
 }
 
 int DataVector::getDimension()

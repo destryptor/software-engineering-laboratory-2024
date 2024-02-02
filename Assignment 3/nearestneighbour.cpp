@@ -23,7 +23,7 @@ int main()
     int vectorSize = dataset.getDimension();
     DataVector testVector(vectorSize); // Creating a vector to be used as the test vector
 
-#ifdef TESTMODE // This mode allows users to test the algorithm on a single vector of their choice
+#ifdef TESTMODE // This mode allows users to test the algorithm on a single vector of their choice (from the dataset)
     cout << "Enter the index of the vector in the dataset to be used as the test vector: ";
     int index;
     cin >> index;
@@ -35,8 +35,8 @@ int main()
     cin >> k;
 
     auto start = chrono::high_resolution_clock::now();
-#ifndef TESTMODE // This mode runs the algorithm on the first 100 vectors of the dataset. 100 is because our professor told me to do so.
-    cout << "Running " << k << "-nearest neighbour algorithm on the dataset..." << endl;
+#ifndef TESTMODE // When this mode is not active, the program runs the algorithm on the first 100 vectors of the dataset. 100 is because our professor told me to do so.
+    cout << "Running " << k << "-nearest neighbour algorithm on the dataset for first 100 vectors..." << endl;
     for (int i = 0; i < 100; i++)
     {
         testVector = dataset.getVectorAtIndex(i);

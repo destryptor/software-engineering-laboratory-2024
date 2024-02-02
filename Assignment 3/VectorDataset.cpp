@@ -75,6 +75,7 @@ void VectorDataset::ReadDataset(string fileName)
     else
     {
         cout << "Unable to open file: " << fileName << endl;
+        exit(-1);
     }
 }
 
