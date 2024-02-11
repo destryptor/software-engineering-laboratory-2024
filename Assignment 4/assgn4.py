@@ -127,13 +127,17 @@ print('Rectangle added to the image')
 
 # Program 11: Binarizing grayscale image with different thresholds
 thresholds = [50, 70, 100, 150]
-plt.figure(figsize=(8, 6))
+binarized_images = {} # Dictionary to store binarized images with the mentioned variable names
 
-# Binarize image with each threshold and display
-for i, threshold in enumerate(thresholds):
+for threshold in thresholds:
     binarized_image = np.where(X > threshold, 255, 0).astype(np.uint8)
+    binarized_images[f'Z{threshold}'] = binarized_image
+
+# Display binarized images side by side
+plt.figure(figsize=(8, 6))
+for i, threshold in enumerate(thresholds):
     plt.subplot(2, 2, i + 1)
-    plt.imshow(binarized_image, cmap='binary')
+    plt.imshow(binarized_images[f'Z{threshold}'], cmap='binary')
     plt.title(f'Threshold: {threshold}')
 
 plt.tight_layout()
