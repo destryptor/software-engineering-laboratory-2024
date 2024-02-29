@@ -37,6 +37,8 @@ void VectorDataset::ReadDataset(string fileName)
     ifstream file(fileName);
     string line;
 
+    getline(file, line); // skip the first line containing serial numbers
+
     if (file.is_open())
     {
         int index = 0;
