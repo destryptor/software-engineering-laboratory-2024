@@ -28,7 +28,7 @@ int main()
     cin >> testDataSize;
 
     VectorDataset testDataSet(testDataSize);
-    testDataset.ReadDataset(testFileName); // Reading the dataset from the test file
+    testDataSet.ReadDataset(testFileName); // Reading the dataset from the test file
 
     int vectorSize = testDataSet.getDimension();
     DataVector testVector(vectorSize); // Creating a vector to be used as the test vector
@@ -49,7 +49,7 @@ int main()
     cout << "Running " << k << "-nearest neighbour algorithm on the dataset for first 100 vectors..." << endl;
     for (int i = 1; i <= 100; i++)
     {
-        testVector = testDataset.getVectorAtIndex(i);
+        testVector = testDataSet.getVectorAtIndex(i);
         cout << "Calculating neighbours for " << i << "th vector..." << endl;
         cout << "--------------------------------------------------" << endl;
         VectorDataset result = dataset.knearestneighbor(testVector, k);

@@ -37,8 +37,6 @@ void VectorDataset::ReadDataset(string fileName)
     ifstream file(fileName);
     string line;
 
-    getline(file, line); // skip the first line containing serial numbers
-
     if (file.is_open())
     {
         int index = 0;
@@ -102,10 +100,10 @@ VectorDataset VectorDataset::knearestneighbor(DataVector a, int k)
     {
         int index = distancesAndIndices[i].second;
         result.set[i] = set[index];
-        cout << i << "th neighbour's index: " << index << endl;
+        cout << (i + 1) << "th neighbour's index: " << index << endl;
     }
 
-    cout << "-------------------------------------" << endl;
+    cout << "--------------------------------------------------" << endl;
 
     return result;
 }
