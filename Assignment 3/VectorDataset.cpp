@@ -100,7 +100,10 @@ VectorDataset VectorDataset::knearestneighbor(DataVector a, int k)
     {
         int index = distancesAndIndices[i].second;
         result.set[i] = set[index];
+        cout << i << "th neighbour's index: " << index << endl;
     }
+
+    cout << "-------------------------------------" << endl;
 
     return result;
 }
