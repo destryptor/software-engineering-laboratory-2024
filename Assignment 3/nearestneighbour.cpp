@@ -20,7 +20,17 @@ int main()
     VectorDataset dataset(dataSize);
     dataset.ReadDataset(fileName); // Reading the dataset from the file
 
-    int vectorSize = dataset.getDimension();
+    string testFileName;
+    cout << "Enter Test Dataset File Name: ";
+    cin >> testFileName;
+    int testDataSize;
+    cout << "Enter Test Dataset Size: ";
+    cin >> testDataSize;
+
+    VectorDataset testDataSet(testDataSize);
+    testDataset.ReadDataset(testFileName); // Reading the dataset from the test file
+
+    int vectorSize = testDataSet.getDimension();
     DataVector testVector(vectorSize); // Creating a vector to be used as the test vector
 
 #ifdef TESTMODE // This mode allows users to test the algorithm on a single vector of their choice (from the dataset)
@@ -37,10 +47,11 @@ int main()
     auto start = chrono::high_resolution_clock::now();
 #ifndef TESTMODE // When this mode is not active, the program runs the algorithm on the first 100 vectors of the dataset. 100 is because our professor told me to do so.
     cout << "Running " << k << "-nearest neighbour algorithm on the dataset for first 100 vectors..." << endl;
-    for (int i = 0; i < 100; i++)
+    for (int i = 1; i <= 100; i++)
     {
-        testVector = dataset.getVectorAtIndex(i);
-        cout << "Calculating neighbours for " << (i + 1) << "th vector..." << endl;
+        testVector = testDataset.getVectorAtIndex(i);
+        cout << "Calculating neighbours for " << i << "th vector..." << endl;
+        cout << "--------------------------------------------------" << endl;
         VectorDataset result = dataset.knearestneighbor(testVector, k);
     }
 #endif
